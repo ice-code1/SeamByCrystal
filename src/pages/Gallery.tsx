@@ -177,7 +177,7 @@ const Gallery = () => {
             Every piece in our gallery can be customized to your preferences. Let's create something beautiful together.
           </p>
           <a
-            href="https://wa.me/1234567890?text=Hi%20Crystal!%20I%20saw%20your%20gallery%20and%20I'm%20interested%20in%20creating%20a%20custom%20piece.%20Could%20we%20discuss%20options?"
+            href="https://wa.me/2349039299059?text=Hi%20Crystal!%20I%20saw%20your%20gallery%20and%20I'm%20interested%20in%20creating%20a%20custom%20piece.%20Could%20we%20discuss%20options?"
             target="_blank"
             rel="noopener noreferrer"
             className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-full font-semibold hover:shadow-xl transition-all duration-300 transform hover:scale-105 inline-block"

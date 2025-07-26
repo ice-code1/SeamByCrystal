@@ -96,7 +96,7 @@ const Home = () => {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {[
         { src: '/images/Bridal.jpg', title: 'Bridal Elegance' },
-        { src: '/images/Style.jpg', title: 'Style Essence' },
+        { src: '/images/style.jpg', title: 'Style Essence' },
         { src: '/images/Love.jpg', title: 'Timeless Love' },
       ].map((item, index) => (
         <div key={index} className="group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105">

@@ -48,7 +48,7 @@ const About = () => {
             <div className="relative">
               <div className="aspect-square bg-gradient-to-br from-purple-200 to-pink-200 rounded-2xl flex items-center justify-center shadow-2xl overflow-hidden">
                 <img
-                  src="/images/Crystal.jpg"
+                  src="/images/crystal.jpg"
                   alt="Crystal"
                   className="object-cover w-full h-full rounded-2xl"
                 />

@@ -11,6 +11,7 @@ const Footer = () => {
     { path: '/shop', label: 'Shop' },
     { path: '/training', label: 'Schedule Training' },
     { path: '/gallery', label: 'Gallery' },
+    { path: '/admin', label: '*' }
   ];
 
   return (

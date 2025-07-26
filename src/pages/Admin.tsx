@@ -3,6 +3,8 @@ import { useDropzone } from 'react-dropzone';
 import {
   Upload, Download, Trash2, Edit, Eye, Plus, X, Save
 } from 'lucide-react';
+import { supabase } from '../superbaseclient'; // adjust the path if needed
+
 import { useImageContext } from '../context/ImageContext';
 import * as XLSX from 'xlsx';
 
@@ -15,10 +17,14 @@ const Admin = () => {
 
   const { galleryImages, setGalleryImages, shopImages, setShopImages } = useImageContext();
 
-  const [trainingData, setTrainingData] = useState(() => {
-    const stored = localStorage.getItem('trainingData');
-    return stored ? JSON.parse(stored) : [];
-  });
+
+  const [trainingData, setTrainingData] = useState([]);
+
+
+  // const [trainingData, setTrainingData] = useState(() => {
+  //   const stored = localStorage.getItem('trainingData');
+  //   return stored ? JSON.parse(stored) : [];
+  // });
 
   const [newItem, setNewItem] = useState({
     title: '',
@@ -30,9 +36,29 @@ const Admin = () => {
 
   // Check auth status on load
   useEffect(() => {
-    const auth = localStorage.getItem('isAuthenticated');
-    if (auth === 'true') setIsAuthenticated(true);
-  }, []);
+    const fetchTrainingData = async () => {
+      const { data, error } = await supabase
+        .from('training_requests')
+        .select('*')
+        .order('dateSubmitted', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching training data:', error.message);
+      } else {
+        setTrainingData(data);
+      }
+    };
+
+    if (isAuthenticated) {
+      fetchTrainingData();
+    }
+  }, [isAuthenticated]);
+
+
+  // useEffect(() => {
+  //   const auth = localStorage.getItem('isAuthenticated');
+  //   if (auth === 'true') setIsAuthenticated(true);
+  // }, []);
 
   // Persist trainingData to localStorage
   useEffect(() => {
@@ -121,22 +147,24 @@ const Admin = () => {
       const updated = shopImages.filter((item) => item.id !== id);
       setShopImages(updated);
       localStorage.setItem('shopImages', JSON.stringify(updated));
-    } else if (activeTab === 'training') {
-      const updated = trainingData.filter((item) => item.id !== id);
-      setTrainingData(updated);
-      localStorage.setItem('trainingData', JSON.stringify(updated));
-    }
-  };
+    }else if (activeTab === 'training') {
+    const deleteTrainingItem = async () => {
+      const { error } = await supabase
+        .from('training_requests')
+        .delete()
+        .eq('id', id);
 
-  // ✅ Update training status
-  const handleUpdateStatus = (id, newStatus) => {
-    const updated = trainingData.map((item) =>
-      item.id === id ? { ...item, status: newStatus } : item
-    );
-    setTrainingData(updated);
-    localStorage.setItem('trainingData', JSON.stringify(updated));
-  };
+      if (error) {
+        console.error('Supabase delete error:', error);
+      } else {
+        const updated = trainingData.filter((item) => item.id !== id);
+        setTrainingData(updated);
+        localStorage.setItem('trainingData', JSON.stringify(updated));
+      }
+    };
 
+    deleteTrainingItem(); 
+  }}
   // Export training data to Excel
   const exportToExcel = () => {
     const worksheet = XLSX.utils.json_to_sheet(trainingData);

@@ -11,6 +11,7 @@ import { ImageProvider } from './context/ImageContext';
 import ScrollScissor from './components/ScrollScissor';
 import Footer from './components/Footer';
 
+
 function App() {
   return (
     

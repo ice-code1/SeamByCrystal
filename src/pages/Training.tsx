@@ -1,20 +1,32 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Calendar, Clock, Users, Award } from 'lucide-react';
+import { supabase } from '../superbaseclient'; // adjust path as needed
 
 const Training = () => {
   const { register, handleSubmit, formState: { errors }, reset } = useForm();
 
-  const onSubmit = (data) => {
-  // 1. Store in localStorage
-  const stored = localStorage.getItem('trainingData');
-  const existingData = stored ? JSON.parse(stored) : [];
+const onSubmit = async (data) => {
   const newEntry = {
     ...data,
-    id: Date.now(),
+    id: Date.now(), // optional
     dateSubmitted: new Date().toISOString().split('T')[0]
   };
 
+  // 1. Save to Supabase
+  const { error } = await supabase
+    .from('training_requests') // your table name in Supabase
+    .insert([newEntry]);
+
+  if (error) {
+    console.error('Supabase insert error:', error.message);
+    alert('Something went wrong. Please try again.');
+    return;
+  }
+
+  // 2. Save to localStorage (optional)
+  const stored = localStorage.getItem('trainingData');
+  const existingData = stored ? JSON.parse(stored) : [];
   const updatedData = [...existingData, newEntry];
   localStorage.setItem('trainingData', JSON.stringify(updatedData));
 

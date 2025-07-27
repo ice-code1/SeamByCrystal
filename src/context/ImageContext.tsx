@@ -1,18 +1,18 @@
-// src/context/ImageContext.tsx
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+
+import { supabase } from '../superbaseclient';
 
 type Image = {
   id: number;
-  src: string;
+  image_url: string;
   title: string;
   category: string;
-  uploadDate?: string;
+  upload_date?: string;
 };
 
 type ImageContextType = {
   galleryImages: Image[];
   setGalleryImages: React.Dispatch<React.SetStateAction<Image[]>>;
-
   shopImages: Image[];
   setShopImages: React.Dispatch<React.SetStateAction<Image[]>>;
 };
@@ -28,23 +28,22 @@ export const useImageContext = () => {
 };
 
 export const ImageProvider = ({ children }: { children: React.ReactNode }) => {
-  const [galleryImages, setGalleryImages] = useState<Image[]>(() => {
-    try {
-      const stored = localStorage.getItem('galleryImages');
-      return stored ? (JSON.parse(stored) as Image[]) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [galleryImages, setGalleryImages] = useState<Image[]>([]);
+  const [shopImages, setShopImages] = useState<Image[]>([]);
 
-  const [shopImages, setShopImages] = useState<Image[]>(() => {
-    try {
-      const stored = localStorage.getItem('shopImages');
-      return stored ? (JSON.parse(stored) as Image[]) : [];
-    } catch {
-      return [];
-    }
-  });
+  // Fetch data from Supabase
+  useEffect(() => {
+    const fetchGalleryImages = async () => {
+      const { data, error } = await supabase.from('gallery').select('*');
+      if (error) {
+        console.error('Error fetching gallery images:', error);
+      } else {
+        setGalleryImages(data as Image[]);
+      }
+    };
+
+    fetchGalleryImages();
+  }, []);
 
   return (
     <ImageContext.Provider value={{ galleryImages, setGalleryImages, shopImages, setShopImages }}>

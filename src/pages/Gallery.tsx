@@ -1,82 +1,47 @@
 import React, { useState } from 'react';
 import { useEffect } from 'react';
 import { X, ZoomIn } from 'lucide-react';
-import { useImageContext } from '../context/ImageContext';
+import { supabase } from '../superbaseclient';
+//import { useImageContext } from '../context/ImageContext';
 
 
 
 const Gallery = () => {
+  const [galleryImages, setGalleryImages] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
-  const { galleryImages, setGalleryImages } = useImageContext();
-  useEffect(() => {
-  console.log("Gallery images in Admin:", galleryImages);
-}, [galleryImages]);
-
-  
-
-  // const galleryImages = [
-  //   {
-  //     id: 1,
-  //     src: 'https://images.pexels.com/photos/1536619/pexels-photo-1536619.jpeg',
-  //     title: 'Elegant Evening Gown',
-  //     category: 'Evening Wear'
-  //   },
-  //   {
-  //     id: 2,
-  //     src: 'https://images.pexels.com/photos/2065195/pexels-photo-2065195.jpeg',
-  //     title: 'Professional Business Suit',
-  //     category: 'Business Wear'
-  //   },
-  //   {
-  //     id: 3,
-  //     src: 'https://images.pexels.com/photos/1926769/pexels-photo-1926769.jpeg',
-  //     title: 'Bohemian Summer Dress',
-  //     category: 'Casual Wear'
-  //   },
-  //   {
-  //     id: 4,
-  //     src: 'https://images.pexels.com/photos/1721558/pexels-photo-1721558.jpeg',
-  //     title: 'Wedding Dress Collection',
-  //     category: 'Bridal'
-  //   },
-  //   {
-  //     id: 5,
-  //     src: 'https://images.pexels.com/photos/1040945/pexels-photo-1040945.jpeg',
-  //     title: 'Cocktail Party Dress',
-  //     category: 'Party Wear'
-  //   },
-  //   {
-  //     id: 6,
-  //     src: 'https://images.pexels.com/photos/2065200/pexels-photo-2065200.jpeg',
-  //     title: 'Traditional African Print',
-  //     category: 'Cultural Wear'
-  //   },
-  //   {
-  //     id: 7,
-  //     src: 'https://images.pexels.com/photos/1183266/pexels-photo-1183266.jpeg',
-  //     title: 'Modern Blazer Design',
-  //     category: 'Professional'
-  //   },
-  //   {
-  //     id: 8,
-  //     src: 'https://images.pexels.com/photos/1448665/pexels-photo-1448665.jpeg',
-  //     title: 'Vintage Inspired Dress',
-  //     category: 'Vintage'
-  //   },
-  //   {
-  //     id: 9,
-  //     src: 'https://images.pexels.com/photos/1536620/pexels-photo-1536620.jpeg',
-  //     title: 'Designer Jacket',
-  //     category: 'Outerwear'
-  //   }
-  // ];
-
-  const categories = ['All', 'Evening Wear', 'Business Wear', 'Casual Wear', 'Bridal', 'Party Wear', 'Cultural Wear'];
   const [activeCategory, setActiveCategory] = useState('All');
 
-  const filteredImages = activeCategory === 'All' 
-    ? galleryImages 
-    : galleryImages.filter(img => img.category === activeCategory);
+  useEffect(() => {
+    const fetchGalleryImages= async () => {
+      const { data, error } = await supabase
+        .from('gallery_items') // or 'gallery' if that's your table
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching gallery images:', error.message);
+      } else {
+        setGalleryImages(data);
+      }
+    };
+
+    fetchGalleryImages();
+  }, []);
+
+  const categories = [
+    'All',
+    'Evening Wear',
+    'Business Wear',
+    'Casual Wear',
+    'Bridal',
+    'Party Wear',
+    'Cultural Wear'
+  ];
+
+  const filteredImages =
+    activeCategory === 'All'
+      ? galleryImages
+      : galleryImages.filter((img) => img.category === activeCategory);
 
   return (
     <div className="pt-16">
@@ -124,7 +89,7 @@ const Gallery = () => {
               >
                 <div className="aspect-[4/5] overflow-hidden">
                   <img
-                    src={image.src}
+                    src={image.image_url}
                     alt={image.title}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                   />
@@ -155,7 +120,7 @@ const Gallery = () => {
               <X className="h-6 w-6" />
             </button>
             <img
-              src={selectedImage.src}
+              src={selectedImage.image_url}
               alt={selectedImage.title}
               className="w-full h-full object-contain rounded-lg"
             />

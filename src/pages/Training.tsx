@@ -187,10 +187,10 @@ Please let me know your availability. Thank you!`;
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                 >
                   <option value="">Select training type</option>
-                  <option value="Beginner Sewing Basics">Beginner Sewing Basics</option>
-                  <option value="Advanced Pattern Making">Advanced Pattern Making</option>
-                  <option value="Fashion Design Intensive">Fashion Design Intensive</option>
-                  <option value="Alterations & Tailoring">Alterations & Tailoring</option>
+                  <option value="Beginner Training - 6 Months">Beginner Training - 6 Months</option>
+                  <option value="Intermediate Training - 3 Months">Intermediate Training - 3 Months</option>
+                  <option value="Advanced Training - 3 Months">Advanced Training - 3 Months</option>
+                  <option value="Corset Class - 2 Weeks">Corset Class - 2 Weeks</option>
                 </select>
                 {errors.trainingType && <p className="text-red-500 text-sm mt-1">{errors.trainingType.message}</p>}
               </div>

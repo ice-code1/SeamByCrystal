@@ -1,12 +1,17 @@
+"use client"
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import {
   Upload, Download, Trash2, Edit, Eye, Plus, X, Save
 } from 'lucide-react';
 import { supabase } from '../superbaseclient'; // adjust the path if needed
+//import { createClient } from "@supabase/supabase-js";
 
 import { useImageContext } from '../context/ImageContext';
 import * as XLSX from 'xlsx';
+
+
+
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState('gallery');
@@ -14,8 +19,11 @@ const Admin = () => {
   const [password, setPassword] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [galleryImages, setGalleryImages] = useState([]);
+  const [shopImages, setShopImages] = useState([]);
 
-  const { galleryImages, setGalleryImages, shopImages, setShopImages } = useImageContext();
+  //const { galleryImages, setGalleryImages, shopImages, setShopImages } = useImageContext();
 
 
   const [trainingData, setTrainingData] = useState([]);
@@ -49,8 +57,22 @@ const Admin = () => {
       }
     };
 
+    const fetchGalleryItems = async () => {
+    const { data, error } = await supabase.from('gallery_items').select('*').order('created_at', { ascending: false });
+    if (!error) setGalleryImages(data);
+    else console.error('Gallery fetch error:', error);
+    };
+
+    const fetchShopItems = async () => {
+    const { data, error } = await supabase.from('shop_items').select('*').order('created_at', { ascending: false });
+    if (!error) setShopImages(data);
+    else console.error('Shop fetch error:', error);
+   };
+
     if (isAuthenticated) {
       fetchTrainingData();
+      fetchGalleryItems();
+      fetchShopItems();
     }
   }, [isAuthenticated]);
 
@@ -61,21 +83,46 @@ const Admin = () => {
   // }, []);
 
   // Persist trainingData to localStorage
-  useEffect(() => {
-    localStorage.setItem('trainingData', JSON.stringify(trainingData));
-  }, [trainingData]);
+    useEffect(() => {
+      localStorage.setItem('trainingData', JSON.stringify(trainingData));
+    }, [trainingData]);
 
-  // File upload
-  const onDrop = useCallback((acceptedFiles) => {
+
+
+  const handleFileUpload = async (file) => {
+  const filePath = `${Date.now()}-${file.name}`;
+
+  const { data, error } = await supabase.storage
+    .from('gallery') // your bucket name
+    .upload(filePath, file);
+
+  if (error) {
+    console.error('Upload failed:', error.message);
+    alert('Upload failed');
+    return null;
+  }
+
+  const { data: publicUrlData } = supabase.storage
+    .from('gallery')
+    .getPublicUrl(filePath);
+
+  return publicUrlData?.publicUrl;
+};
+
+
+ const onDrop = useCallback(async (acceptedFiles) => {
     const file = acceptedFiles[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setNewItem((prev) => ({ ...prev, image: reader.result }));
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    const publicUrl = await handleFileUpload(file);
+    if (publicUrl) {
+      setNewItem((prev) => ({ ...prev, image: publicUrl }));
     }
   }, []);
+
+  //const { getRootProps, getInputProps } = useDropzone({ onDrop });
+
+
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -96,75 +143,147 @@ const Admin = () => {
     }
   };
 
-  // Add new gallery or shop item
-  const handleAddItem = () => {
-    if (!newItem.image || !newItem.category) {
-      alert('Please upload an image and select a category.');
-      return;
-    }
+    const handleAddItem = async () => {
+      if (!newItem.image || !newItem.category) {
+        alert('Please upload an image and select a category.');
+        return;
+      }
 
-    const uploadDate = new Date().toISOString().split('T')[0];
+      const id = Date.now().toString();
+      const created_at = new Date().toISOString();
+
+      if (activeTab === 'gallery') {
+        const { error } = await supabase.from('gallery_items').insert([
+          {
+            id,
+            title: newItem.title,
+            category: newItem.category,
+            image_url: newItem.image,
+            created_at
+          }
+        ]);
+        if (!error) {
+          const { data } = await supabase.from('gallery_items').select('*').order('created_at', { ascending: false });
+          setGalleryImages(data);
+        } else {
+          console.error('Insert gallery error:', error);
+          alert('Failed to upload gallery item');
+        }
+      } else if (activeTab === 'shop') {
+        const { error } = await supabase.from('shop_items').insert([
+          {
+            id,
+            name: newItem.name,
+            category: newItem.category,
+            image: newItem.image,
+            description: newItem.description,
+            created_at
+          }
+        ]);
+        if (!error) {
+          const { data } = await supabase.from('shop_items').select('*').order('created_at', { ascending: false });
+          setShopImages(data);
+        } else {
+          console.error('Insert shop error:', error);
+          alert('Failed to upload shop item');
+        }
+      }
+
+      setNewItem({ title: '', name: '', category: '', description: '', image: null });
+      setShowAddModal(false);
+    };
+
+
+
+
+
+    const handleSubmit = async () => {
+    const id = Date.now().toString();
+    const uploadDate = new Date().toISOString();
 
     if (activeTab === 'gallery') {
-      const newGalleryItem = {
-        id: Date.now(),
-        src: newItem.image,
-        title: newItem.title,
-        category: newItem.category,
-        uploadDate
-      };
-      const updated = [...galleryImages, newGalleryItem];
-      setGalleryImages(updated);
-      localStorage.setItem('galleryImages', JSON.stringify(updated));
-    } else if (activeTab === 'shop') {
-      const newShopItem = {
-        id: Date.now(),
-        name: newItem.name,
-        category: newItem.category,
-        image: newItem.image,
-        description: newItem.description,
-        uploadDate
-      };
-      const updated = [...shopImages, newShopItem];
-      setShopImages(updated);
-      localStorage.setItem('shopImages', JSON.stringify(updated));
+      const id = Date.now().toString();
+
+      const { error } = await supabase.from('gallery').insert([
+        {
+          id,
+          title: newItem.title,
+          src: newItem.image, // now a public URL
+          category: newItem.category,
+          uploadDate,
+        },
+      ]);
+
+      if (error) {
+        alert('Failed to insert item');
+        console.error(error);
+        return;
+      }
+
+      setGalleryImages((prev) => [...prev, { id, ...newItem, src: newItem.image, uploadDate }]);
     }
+    else if (activeTab === 'shop') {
+      const id = Date.now().toString();
+
+      const { error } = await supabase.from('shop_products').insert([
+        {
+          id,
+          name: newItem.name,
+          image: newItem.image, // public URL
+          category: newItem.category,
+          description: newItem.description,
+          uploadDate,
+        },
+      ]);
+
+      if (error) {
+        alert('Failed to insert item');
+        console.error(error);
+        return;
+      }
+
+      setShopImages((prev) => [...prev, { id, ...newItem, uploadDate }]);
+    }
+
 
     // Reset form and close modal
     setNewItem({ title: '', name: '', category: '', description: '', image: null });
     setShowAddModal(false);
-  };
-
+  }
   // Delete item from relevant tab
-  const handleDeleteItem = (id) => {
-    if (!window.confirm('Are you sure you want to delete this item?')) return;
+  const handleDeleteItem = async (id) => {
+  if (!window.confirm('Are you sure you want to delete this item?')) return;
 
-    if (activeTab === 'gallery') {
+  if (activeTab === 'gallery') {
+    const { error } = await supabase.from('gallery_items').delete().eq('id', id);
+    if (!error) {
       const updated = galleryImages.filter((item) => item.id !== id);
       setGalleryImages(updated);
-      localStorage.setItem('galleryImages', JSON.stringify(updated));
-    } else if (activeTab === 'shop') {
+    } else {
+      console.error('Delete gallery error:', error);
+    }
+
+  } else if (activeTab === 'shop') {
+    const { error } = await supabase.from('shop_items').delete().eq('id', id);
+    if (!error) {
       const updated = shopImages.filter((item) => item.id !== id);
       setShopImages(updated);
-      localStorage.setItem('shopImages', JSON.stringify(updated));
-    }else if (activeTab === 'training') {
-    const deleteTrainingItem = async () => {
-      const { error } = await supabase
-        .from('training_requests')
-        .delete()
-        .eq('id', id);
+    } else {
+      console.error('Delete shop error:', error);
+    }
 
-      if (error) {
-        console.error('Supabase delete error:', error);
-      } else {
-        const updated = trainingData.filter((item) => item.id !== id);
-        setTrainingData(updated);
-        localStorage.setItem('trainingData', JSON.stringify(updated));
-      }
-    };
+  } else if (activeTab === 'training') {
+    const { error } = await supabase.from('training_requests').delete().eq('id', id);
+    if (error) {
+      console.error('Supabase delete error:', error);
+    } else {
+      const updated = trainingData.filter((item) => item.id !== id);
+      setTrainingData(updated);
+      localStorage.setItem('trainingData', JSON.stringify(updated));
+    }
+  }
+};
 
-    deleteTrainingItem(); 
-  }}
   // Export training data to Excel
   const exportToExcel = () => {
     const worksheet = XLSX.utils.json_to_sheet(trainingData);
@@ -261,7 +380,7 @@ const Admin = () => {
               {galleryImages.map((image) => (
                 <div key={image.id} className="bg-white rounded-lg shadow-md overflow-hidden">
                   <img
-                    src={image.src}
+                    src={image.image_url}
                     alt={image.title}
                     className="w-full h-48 object-cover"
                   />
@@ -310,7 +429,7 @@ const Admin = () => {
               {shopImages.map((product) => (
                 <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden">
                   <img
-                    src={product.image}
+                    src={product.image_url}
                     alt={product.name}
                     className="w-full h-48 object-cover"
                   />

@@ -3,6 +3,8 @@ import { MessageCircle, Heart, Eye } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import { useImageContext } from '../context/ImageContext';
 import ScrollScissor from '../components/ScrollScissor';
+import { supabase } from '../superbaseclient';
+import { useEffect } from 'react';
 
 const categories = [
   'All',
@@ -14,29 +16,55 @@ const categories = [
   'Cultural Wear',
 ];
 
-const Shop = () => {
-  const { shopImages } = useImageContext();
-  const [activeCategory, setActiveCategory] = useState('All');
+  const Shop = () => {
+    const { shopImages, setShopImages } = useImageContext();
+    const [activeCategory, setActiveCategory] = useState('All');
 
-  const filteredImages =
-    activeCategory === 'All'
-      ? shopImages
-      : shopImages.filter((img) => img.category === activeCategory);
+    useEffect(() => {
+      const fetchShopImages = async () => {
+        try {
+          const { data, error } = await supabase.from('shop_items').select('*');
+          if (error) throw error;
 
-  const handleNegotiate = (product) => {
-    const message = `Hi Crystal! I'm interested in negotiating for the "${product.name}" (${product.category}).
+          const formattedData = data.map((item) => ({
+            id: item.id,
+            src: item.image_url,
+            title: item.name,
+            category: item.category,
+            uploadDate: item.created_at,
+            description: item.description,
+            image_url: item.image_url,
+            name: item.name,
+          }));
 
-Product Details:
-- Name: ${product.name}
-- Category: ${product.category}
-- Description: ${product.description}
-- Image: ${product.image}
+          setShopImages(formattedData);
+        } catch (error) {
+          console.error('Error fetching shop images:', error);
+        }
+      };
 
-Could we discuss customization options and pricing? Thank you!`;
+      fetchShopImages();
+    }, [setShopImages]);
 
-    const whatsappUrl = `https://wa.me/+2349039299059?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-  };
+    const filteredImages =
+      activeCategory === 'All'
+        ? shopImages
+        : shopImages.filter((img) => img.category === activeCategory);
+
+    const handleNegotiate = (product) => {
+      const message = `Hi Crystal! I'm interested in negotiating for the "${product.name}" (${product.category}).
+
+  Product Details:
+  - Name: ${product.name}
+  - Category: ${product.category}
+  - Description: ${product.description}
+  - Image: ${product.image_url}
+
+  Could we discuss customization options and pricing? Thank you!`;
+
+      const whatsappUrl = `https://wa.me/+2349039299059?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
+    };
 
   return (
     <>
@@ -86,7 +114,7 @@ Could we discuss customization options and pricing? Thank you!`;
                   >
                     <div className="aspect-[4/5] overflow-hidden">
                       <img
-                        src={product.image}
+                        src={product.image_url}
                         alt={product.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                       />

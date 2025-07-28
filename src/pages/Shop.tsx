@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MessageCircle, Heart, Eye } from 'lucide-react';
+import { MessageCircle, Heart, Eye, X } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import { useImageContext } from '../context/ImageContext';
 import ScrollScissor from '../components/ScrollScissor';
@@ -18,6 +18,7 @@ const categories = [
 
   const Shop = () => {
     const { shopImages, setShopImages } = useImageContext();
+    const [selectedImage, setSelectedImage] = useState(null);
     const [activeCategory, setActiveCategory] = useState('All');
 
     useEffect(() => {
@@ -110,9 +111,11 @@ const categories = [
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {filteredImages.map((product) => (
+                  
                   <div
                     key={product.id}
                     className="group relative bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+                    onClick={() => setSelectedImage(product)}
                   >
                     <div className="aspect-[4/5] overflow-hidden">
                       <img
@@ -156,6 +159,37 @@ const categories = [
                     </div>
                   </div>
                 ))}
+
+                {selectedImage && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4 py-8 overflow-y-auto">
+                  <div className="relative bg-purple-950 rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
+                    {/* Close Button */}
+                    <button
+                      onClick={() => setSelectedImage(null)}
+                      className="absolute top-4 right-4 z-10 p-2 bg-white/70 hover:bg-white rounded-full shadow-md transition"
+                    >
+                      <X className="h-5 w-5 text-gray-700" />
+                    </button>
+
+                    {/* Image and Info */}
+                    <div className="w-full h-full flex flex-col">
+                      <img
+                        src={selectedImage.image_url}
+                        alt={selectedImage.title}
+                        className="w-full max-h-[70vh] object-contain bg-black"
+                      />
+                      <div className="p-6 text-gray-800">
+                        <h3 className="text-2xl font-bold text-white mb-1">{selectedImage.title}</h3>
+                        <p className="text-sm text-pink-300 font-medium mb-2">{selectedImage.category}</p>
+                        <p className="text-rose-100">{selectedImage.price}</p>
+
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+                
               </div>
             )}
           </div>

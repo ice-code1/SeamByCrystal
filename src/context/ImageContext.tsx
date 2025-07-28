@@ -7,6 +7,7 @@ type Image = {
   image_url: string;
   title: string;
   category: string;
+  price: string;
   upload_date?: string;
 };
 

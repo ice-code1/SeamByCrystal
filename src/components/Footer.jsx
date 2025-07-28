@@ -27,7 +27,7 @@ const Footer = () => {
           <ul className="space-y-1 text-gray-600 dark:text-gray-300">
             <li>📍 Ajetumobi,Agbowo Ibadan</li>
             <li>📞 +234 903 9299 059</li>
-            <li>📧 seamsbycrystal@gmail.com</li>
+            <li>📧 popoolabolaji01@gmail.com</li>
             <li>🕘 Mon - Sat, 9:00 AM - 6:00 PM</li>
           </ul>
         </div>

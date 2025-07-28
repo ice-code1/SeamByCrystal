@@ -34,6 +34,7 @@ const categories = [
             uploadDate: item.created_at,
             description: item.description,
             image_url: item.image_url,
+            price:item.price,
             name: item.name,
           }));
 
@@ -57,6 +58,7 @@ const categories = [
   Product Details:
   - Name: ${product.name}
   - Category: ${product.category}
+  - Price: ${product.price}
   - Description: ${product.description}
   - Image: ${product.image_url}
 
@@ -139,6 +141,10 @@ const categories = [
                         </span>
                       </div>
                       <h3 className="text-xl font-bold text-gray-800 mb-2">{product.name}</h3>
+                      <h3 className="text-xl font-semibold text-green-700 bg-green-100 inline-block px-3 py-1 rounded-md shadow-sm mb-2">
+                        ₦{product.price}
+                      </h3>
+
                       <p className="text-gray-600 mb-4 line-clamp-2">{product.description}</p>
                       <button
                         onClick={() => handleNegotiate(product)}

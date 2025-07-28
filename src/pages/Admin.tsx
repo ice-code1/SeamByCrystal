@@ -39,6 +39,7 @@ const Admin = () => {
     name: '',
     category: '',
     description: '',
+    price:'',
     image: null,
   });
 
@@ -175,9 +176,10 @@ const Admin = () => {
             id,
             name: newItem.name,
             category: newItem.category,
-            image: newItem.image,
+            image_url: newItem.image,
             description: newItem.description,
-            created_at
+            created_at,
+            price: newItem.price,
           }
         ]);
         if (!error) {
@@ -189,7 +191,7 @@ const Admin = () => {
         }
       }
 
-      setNewItem({ title: '', name: '', category: '', description: '', image: null });
+      setNewItem({ title: '', name: '', category: '', description: '', price: '', image: null });
       setShowAddModal(false);
     };
 
@@ -231,6 +233,7 @@ const Admin = () => {
           name: newItem.name,
           image: newItem.image, // public URL
           category: newItem.category,
+          price: newItem.price,
           description: newItem.description,
           uploadDate,
         },
@@ -247,7 +250,7 @@ const Admin = () => {
 
 
     // Reset form and close modal
-    setNewItem({ title: '', name: '', category: '', description: '', image: null });
+    setNewItem({ title: '', name: '', category: '', description: '',price: '', image: null });
     setShowAddModal(false);
   }
   // Delete item from relevant tab
@@ -436,6 +439,7 @@ const Admin = () => {
                   <div className="p-4">
                     <h3 className="font-semibold text-gray-800 mb-1">{product.name}</h3>
                     <p className="text-sm text-purple-600 mb-2">{product.category}</p>
+                    <p className="text-sm text-purple-600 mb-2">{product.price}</p>
                     <p className="text-sm text-gray-600 mb-2 line-clamp-2">{product.description}</p>
                     <p className="text-xs text-gray-500 mb-3">Uploaded: {product.uploadDate}</p>
                     <div className="flex gap-2">
@@ -605,6 +609,23 @@ const Admin = () => {
                   </div>
 
                   {activeTab === 'shop' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Price (₦)
+                      </label>
+                      <input
+                        type="number"
+                        value={newItem.price || ''}
+                        onChange={(e) => setNewItem(prev => ({ ...prev, price: parseFloat(e.target.value) }))}
+                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="Enter product price"
+                      />
+                    </div>
+                  )}
+
+
+                  {activeTab === 'shop' && (
+                    
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Description

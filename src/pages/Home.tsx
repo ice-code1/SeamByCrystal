@@ -1,5 +1,5 @@
 import React from 'react';
-
+import { useState, useEffect } from "react";
 
 import { Link } from 'react-router-dom';
 import { ArrowRight, Star, Users, Award } from 'lucide-react';
@@ -11,6 +11,22 @@ const Home = () => {
     { icon: Award, label: 'Awards Won', value: '15+' },
   ];
 
+    const heroImages = [
+    "/images/SeamByCrystal.jpg",
+    "/images/bg2.jpg",
+    "/images/bg3.jpg",
+  ];
+
+  const [currentImage, setCurrentImage] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImage((prev) => (prev + 1) % heroImages.length);
+    }, 5000); // change every 5 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="pt-16">
       {/* Hero Section */}
@@ -19,7 +35,9 @@ const Home = () => {
         {/* Blurred Background Layer */}
         <div
           className="absolute inset-0 bg-cover bg-center filter backdrop-blur   scale-80"
-          style={{ backgroundImage: "url('/images/SeamByCrystal.jpg')" }}
+          style={{
+            backgroundImage: `url(${heroImages[currentImage]})`,
+          }}
         />
 
         {/* Gradient Overlay */}

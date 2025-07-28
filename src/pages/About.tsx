@@ -54,7 +54,11 @@ const About = () => {
                 />
               </div>
               <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-lg">
-                <Scissors className="h-12 w-12 text-purple-600" />
+                 <img
+              src="/images/Logo1.png"
+              alt="Seamsbycrystal Logo"
+              className="h-24 w-24 object-contain"
+            />
               </div>
             </div>
 

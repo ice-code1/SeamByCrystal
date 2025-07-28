@@ -13,8 +13,8 @@ const Home = () => {
 
     const heroImages = [
     "/images/SeamByCrystal.jpg",
-    "/images/bg2.jpg",
-    "/images/bg3.jpg",
+    "/images/bg4.jpg",
+    "/images/bg5.jpg",
   ];
 
   const [currentImage, setCurrentImage] = useState(0);

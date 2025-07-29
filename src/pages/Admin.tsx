@@ -22,6 +22,15 @@ const Admin = () => {
   const [file, setFile] = useState<File | null>(null);
   const [galleryImages, setGalleryImages] = useState([]);
   const [shopImages, setShopImages] = useState([]);
+  const categories = [
+  'All',
+  'Evening Wear',
+  'Business Wear',
+  'Casual Wear',
+  'Bridal',
+  'Party Wear',
+  'Cultural Wear',
+];
 
   //const { galleryImages, setGalleryImages, shopImages, setShopImages } = useImageContext();
 
@@ -132,6 +141,58 @@ const Admin = () => {
     },
     multiple: false
   });
+
+    const handleEditGalleryItem = async () => {
+      const { id, title, category } = editingItem;
+
+      const { error } = await supabase
+        .from('gallery_items')
+        .update({ title, category })
+        .eq('id', id);
+
+      if (error) {
+        console.error('Edit error:', error);
+        alert('Failed to update item.');
+      } else {
+        const { data } = await supabase
+          .from('gallery_items')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        setGalleryImages(data);
+        setEditingItem(null); // close modal
+      }
+    };
+
+  const handleEditShopItem = async () => {
+  const { id, name, price, description } = editingItem;
+
+  const { error } = await supabase
+    .from('shop_items')
+    .update({ name, price, description })
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error updating shop item:', error);
+    alert('Failed to update shop item');
+  } else {
+    const { data, error: fetchError } = await supabase
+      .from('shop_items')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!fetchError) {
+      setShopItems(data); // assuming this updates your shop UI
+    }
+
+    setEditingItem(null); // close modal
+  }
+};
+
+
+
+
+
 
   // Handle Login
   const handleLogin = (e) => {
@@ -412,6 +473,49 @@ const Admin = () => {
               ))}
             </div>
           </div>
+          )}
+          {editingItem !== null && editingItem && activeTab === 'gallery' && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-xl shadow-xl w-full max-w-md space-y-4">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">Edit Gallery Item</h2>
+
+              <input
+                type="text"
+                value={editingItem.title}
+                onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
+                placeholder="Title"
+                className="w-full border border-gray-300 rounded px-4 py-2"
+              />
+
+              <select
+                value={editingItem.category}
+                onChange={(e) => setEditingItem({ ...editingItem, category: e.target.value })}
+                className="w-full border border-gray-300 rounded px-4 py-2"
+              >
+                <option value="">Select category</option>
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+
+              <img src={editingItem.image_url} alt="Preview" className="w-full h-40 object-cover rounded" />
+
+              <div className="flex justify-end gap-2 mt-4">
+                <button
+                  onClick={() => setEditingItem(null)}
+                  className="px-4 py-2 bg-gray-300 rounded"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleEditGalleryItem}
+                  className="px-4 py-2 bg-purple-600 text-white rounded"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Shop Tab */}
@@ -464,6 +568,62 @@ const Admin = () => {
             </div>
           </div>
         )}
+         {editingItem && activeTab === 'shop' && (
+                  <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center">
+                    <div className="bg-white p-6 rounded-lg w-[90%] max-w-md shadow-xl">
+                      <h3 className="text-lg font-semibold mb-4">Edit Shop Item</h3>
+
+                      <input
+                        type="text"
+                        value={editingItem.name}
+                        onChange={(e) =>
+                          setEditingItem((prev) => ({ ...prev, name: e.target.value }))
+                        }
+                        className="w-full mb-4 px-4 py-2 border border-gray-300 rounded-lg"
+                        placeholder="Product name"
+                      />
+
+                      <textarea
+                        value={editingItem.description}
+                        onChange={(e) =>
+                          setEditingItem((prev) => ({ ...prev, description: e.target.value }))
+                        }
+                        rows={3}
+                        className="w-full mb-4 px-4 py-2 border border-gray-300 rounded-lg"
+                        placeholder="Product description"
+                      />
+
+                      <input
+                        type="text"
+                        value={editingItem.price}
+                        onChange={(e) =>
+                          setEditingItem((prev) => ({
+                            ...prev,
+                            price: parseFloat(e.target.value),
+                          }))
+                        }
+                        className="w-full mb-4 px-4 py-2 border border-gray-300 rounded-lg"
+                        placeholder="Product price"
+                      />
+
+                      <div className="flex justify-between">
+                        <button
+                          onClick={() => setEditingItem(null)}
+                          className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleEditShopItem}
+                          className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
+                        >
+                          Save Changes
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
 
         {/* Training Tab */}
         {activeTab === 'training' && (
@@ -608,37 +768,11 @@ const Admin = () => {
                     </select>
                   </div>
 
-                  {activeTab === 'shop' && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Price (₦)
-                      </label>
-                      <input
-                        type="number"
-                        value={newItem.price || ''}
-                        onChange={(e) => setNewItem(prev => ({ ...prev, price: parseFloat(e.target.value) }))}
-                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="Enter product price"
-                      />
-                    </div>
-                  )}
+                  
+                
 
+                 
 
-                  {activeTab === 'shop' && (
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Description
-                      </label>
-                      <textarea
-                        value={newItem.description}
-                        onChange={(e) => setNewItem(prev => ({ ...prev, description: e.target.value }))}
-                        rows={3}
-                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="Enter product description"
-                      />
-                    </div>
-                  )}
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
